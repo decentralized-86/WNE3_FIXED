@@ -1,18 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
 
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Burnable.sol";
-import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
-import "@openzeppelin/contracts/utils/Strings.sol";
+import "openzeppelin/access/Ownable.sol";
+import "openzeppelin/security/Pausable.sol";
+import "openzeppelin/token/ERC1155/extensions/ERC1155Burnable.sol";
+import "openzeppelin/token/ERC1155/extensions/ERC1155Supply.sol";
+import "openzeppelin/utils/Strings.sol";
 
-contract Token is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
+contract Token is Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
     /**
      * @dev constants
      */
-
     event CustomUpdateEvent(
         address operator,
         address from,
@@ -32,7 +30,7 @@ contract Token is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
     mapping(address => bool) allowList;
     mapping(address => uint256) purchasesPerWallet;
 
-    constructor() ERC1155("") Ownable(msg.sender) {}
+    constructor() ERC1155("") Ownable() {}
 
     function setURI(string memory newuri) public onlyOwner {
         _setURI(newuri);
@@ -88,9 +86,15 @@ contract Token is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
         return string(abi.encodePacked(super.uri(_id), Strings.toString(_id), ".json"));
     }
 
-    function _update(address from, address to, uint256[] memory ids, uint256[] memory values) internal virtual override(ERC1155, ERC1155Supply) {
-        super._update(from, to, ids, values);
-        // Additional logic can be added here if needed.
+    function _beforeTokenTransfer(
+        address operator,
+        address from,
+        address to,
+        uint256[] memory ids,
+        uint256[] memory amounts,
+        bytes memory data
+    ) internal virtual override(ERC1155, ERC1155Supply) {
+        super._beforeTokenTransfer(operator, from, to, ids, amounts, data);
     }
 
     function myCustomUpdate(
@@ -99,7 +103,7 @@ contract Token is ERC1155, Ownable, Pausable, ERC1155Burnable, ERC1155Supply {
         address to,
         uint256[] memory ids,
         uint256[] memory amounts,
-         bytes memory /*data */
+        bytes memory /*data */
     ) internal whenNotPaused {
         // Only perform custom logic for transfers (not mints)
         if (from != address(0)) {
